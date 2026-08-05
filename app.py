@@ -1,6 +1,6 @@
 import streamlit as st
+import time
 from google import genai
-from google.genai import types
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -37,7 +37,7 @@ with st.sidebar:
         ["Engaging & Energetic", "Educational & Professional", "Casual & Conversational", "Dramatic & Storytelling"]
     )
 
-# --- Main Interface: Topic & Key Details ---
+# --- Main Interface ---
 col1, col2 = st.columns([2, 1])
 
 with col1:
@@ -52,6 +52,30 @@ with col2:
     - Provide custom key points if you want specific sections included.
     """)
 
+# --- Robust Model Generation Function with Retry Logic ---
+def generate_script_with_retry(client, prompt, max_retries=3):
+    """Attempts to call the API and retries if 503 UNAVAILABLE occurs."""
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt
+            )
+            return response.text
+        except Exception as e:
+            error_str = str(e)
+            # If server is overloaded (503), wait and retry
+            if "503" in error_str or "UNAVAILABLE" in error_str or "high demand" in error_str:
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 3  # Waits 3s, then 6s, etc.
+                    st.warning(f"Server is busy. Retrying in {wait_time} seconds (Attempt {attempt + 2}/{max_retries})...")
+                    time.sleep(wait_time)
+                else:
+                    raise Exception("The AI service is currently experiencing extremely high traffic. Please wait 1-2 minutes and click Generate again.")
+            else:
+                # Re-raise non-503 errors (e.g., invalid API key)
+                raise e
+
 # --- Generation Logic ---
 if st.button("🚀 Generate YouTube Script", type="primary", use_container_width=True):
     if not api_key:
@@ -64,7 +88,7 @@ if st.button("🚀 Generate YouTube Script", type="primary", use_container_width
                 # Initialize Google GenAI Client
                 client = genai.Client(api_key=api_key)
                 
-                # Construct Engineering Prompt
+                # Construct Prompt
                 prompt = f"""
                 You are an expert YouTube content creator and scriptwriter known for high-retention video scripts.
                 
@@ -85,24 +109,21 @@ if st.button("🚀 Generate YouTube Script", type="primary", use_container_width
                 5. **Outro & Call-to-Action (CTA):** Encouraging likes, comments, and channel subscriptions.
                 """
                 
-                # Call Gemini Model (using gemini-2.5-flash)
-                response = client.models.generate_content(
-                    model='gemini-3.5-flash',
-                    contents=prompt
-                )
+                # Call model using retry function
+                script_output = generate_script_with_retry(client, prompt)
                 
                 # Render Generated Output
                 st.success("Script Generated Successfully!")
                 st.markdown("---")
-                st.markdown(response.text)
+                st.markdown(script_output)
                 
                 # Download Button
                 st.download_button(
                     label="📄 Download Script (.txt)",
-                    data=response.text,
+                    data=script_output,
                     file_name=f"{topic.lower().replace(' ', '_')}_script.txt",
                     mime="text/plain"
                 )
                 
             except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
+                st.error(f"Error: {str(e)}")
