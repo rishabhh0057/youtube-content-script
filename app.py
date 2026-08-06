@@ -1,16 +1,12 @@
 import streamlit as st
 import html
 import urllib.parse
-import os
-from gtts import gTTS
-from PIL import Image, ImageDraw, ImageFont
-import moviepy as mp
 
 # -----------------------------------------------------------------------------
 # 1. PAGE CONFIGURATION
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="YouTube Script & Asset Generator Pro",
+    page_title="YouTube Script Generator Studio Pro",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -19,88 +15,146 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 # 2. SIDEBAR CONFIGURATION & ADJUSTABLE COLUMN SLIDERS
 # -----------------------------------------------------------------------------
-st.sidebar.markdown("## ⚙️ Layout & Theme Controls")
+st.sidebar.markdown("## ⚙️ Studio Layout Controls")
 
-# Custom Theme Selector
-theme_choice = st.sidebar.selectbox("🎨 App Theme", ["Dark Glass", "Cyberpunk Neon", "Light Clean"])
+theme_choice = st.sidebar.selectbox(
+    "🎨 UI Theme Engine",
+    ["Midnight Cyberpunk", "Dark Glassmorphism", "Clean Studio Light"]
+)
 
-# Dynamic Column Width Slider
-st.sidebar.markdown("### 📐 Adjustable Layout Grid")
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📐 Grid Workspace Resizer")
 left_col_ratio = st.sidebar.slider(
-    "Input Panel Width vs Preview Panel Width",
-    min_value=20,
-    max_value=80,
-    value=45,
+    "Inputs vs Output Split Ratio",
+    min_value=25,
+    max_value=75,
+    value=40,
     step=5,
-    help="Adjust the slider ratio to widen or narrow the input form and preview columns dynamically!"
+    help="Drag to adjust the width balance between the parameter panel and the script studio preview."
 )
 
 right_col_ratio = 100 - left_col_ratio
-st.sidebar.caption(f"Current Layout Ratio: **{left_col_ratio}% : {right_col_ratio}%**")
+st.sidebar.caption(f"Layout Ratio: **{left_col_ratio}% Inputs | {right_col_ratio}% Preview**")
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 💡 Quick Tips")
+st.sidebar.info(
+    "• **Teleprompter Mode** gives you a full-width presentation view.\n"
+    "• Use **Custom Rules** to enforce specific B-roll or sponsorship placements."
+)
 
 # -----------------------------------------------------------------------------
-# 3. ADVANCED CUSTOM CSS FOR PREMIUM BEAUTIFICATION
+# 3. ADVANCED CUSTOM CSS FOR MAXIMUM VISUAL APPEAL
 # -----------------------------------------------------------------------------
 def inject_custom_css(theme):
-    if theme == "Dark Glass":
-        bg_color = "#0B0F19"
-        card_bg = "rgba(22, 31, 48, 0.75)"
+    if theme == "Midnight Cyberpunk":
+        bg_color = "#070913"
+        card_bg = "rgba(18, 24, 43, 0.75)"
         text_color = "#F3F4F6"
-        accent_color = "#3B82F6"
-        border_color = "rgba(255, 255, 255, 0.1)"
-    elif theme == "Cyberpunk Neon":
-        bg_color = "#090014"
-        card_bg = "rgba(24, 0, 46, 0.85)"
-        text_color = "#00F0FF"
-        accent_color = "#FF007F"
-        border_color = "#FF007F"
-    else:  # Light Clean
+        accent_gradient = "linear-gradient(135deg, #FF007F 0%, #7928CA 100%)"
+        accent_border = "rgba(255, 0, 127, 0.3)"
+        subtle_text = "#9CA3AF"
+    elif theme == "Dark Glassmorphism":
+        bg_color = "#0F172A"
+        card_bg = "rgba(30, 41, 59, 0.7)"
+        text_color = "#F8FAFC"
+        accent_gradient = "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)"
+        accent_border = "rgba(59, 130, 246, 0.3)"
+        subtle_text = "#94A3B8"
+    else:  # Clean Studio Light
         bg_color = "#F8FAFC"
         card_bg = "#FFFFFF"
         text_color = "#0F172A"
-        accent_color = "#2563EB"
-        border_color = "#E2E8F0"
+        accent_gradient = "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)"
+        accent_border = "#E2E8F0"
+        subtle_text = "#64748B"
 
     css = f"""
     <style>
-    /* Global App Background */
+    /* Global App Container */
     .stApp {{
         background-color: {bg_color};
         color: {text_color};
     }}
     
-    /* Beautiful Glassmorphic Cards */
+    /* Premium Glassmorphic Card Blocks */
     .styled-card {{
         background: {card_bg};
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid {border_color};
-        border-radius: 16px;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid {accent_border};
+        border-radius: 20px;
         padding: 24px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        margin-bottom: 24px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }}
     
-    /* Styled Headers */
-    .main-title {{
-        font-size: 2.2rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #FF4B4B, #FF8F00);
+    /* Hero Gradient Title */
+    .hero-title {{
+        font-size: 2.5rem;
+        font-weight: 900;
+        background: {accent_gradient};
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
+        letter-spacing: -0.5px;
     }}
     
-    /* Speech Duration Badge */
-    .metric-badge {{
+    .hero-subtitle {{
+        color: {subtle_text};
+        font-size: 1.05rem;
+        margin-bottom: 24px;
+    }}
+    
+    /* Script Section Cards */
+    .script-section {{
+        border-left: 4px solid #3B82F6;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 16px 20px;
+        border-radius: 0 12px 12px 0;
+        margin-bottom: 18px;
+    }}
+    
+    .visual-cue {{
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px dashed #F59E0B;
+        color: #FBBF24;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
         display: inline-block;
-        background: {accent_color};
+    }}
+
+    /* Stat Pill Badge */
+    .metric-pill {{
+        background: {accent_gradient};
         color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
+        padding: 6px 16px;
+        border-radius: 50px;
         font-weight: 600;
-        margin-bottom: 12px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-right: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }}
+
+    /* Teleprompter Box */
+    .teleprompter-box {{
+        background: #000000;
+        color: #00FF66;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.35rem;
+        line-height: 1.8;
+        padding: 28px;
+        border-radius: 16px;
+        border: 2px solid #00FF66;
+        height: 400px;
+        overflow-y: scroll;
+        box-shadow: 0 0 20px rgba(0, 255, 102, 0.2);
     }}
     </style>
     """
@@ -109,251 +163,221 @@ def inject_custom_css(theme):
 inject_custom_css(theme_choice)
 
 # -----------------------------------------------------------------------------
-# 4. HELPER FUNCTIONS FOR ASSET GENERATION (IMAGE & VIDEO)
+# 4. APP HEADER & LAYOUT INITIALIZATION
 # -----------------------------------------------------------------------------
-def generate_topic_image(topic_text):
-    """Generates a styled 1920x1080 banner image for the topic."""
-    img = Image.new('RGB', (1920, 1080), color=(15, 23, 42))
-    draw = ImageDraw.Draw(img)
-    
-    # Simple aesthetic layout
-    draw.rectangle([60, 60, 1860, 1020], outline=(59, 130, 246), width=8)
-    draw.text((120, 450), "YOUTUBE CONTENT ASSET", fill=(255, 75, 75))
-    draw.text((120, 520), f"TOPIC: {topic_text[:50]}", fill=(255, 255, 255))
-    
-    output_img_path = "topic_image.png"
-    img.save(output_img_path)
-    return output_img_path
+st.markdown('<div class="hero-title">🎬 YouTube Script Studio Pro</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-subtitle">Craft viral, high-retention video scripts tailored precisely to your target audience.</div>', unsafe_allow_html=True)
 
-def generate_topic_video(topic_text, script_narration):
-    """Generates an MP4 video combining gTTS voiceover + image slide using MoviePy 2.0+."""
-    # Step A: Synthesize voiceover audio
-    tts = gTTS(text=script_narration[:300], lang='en', slow=False)
-    audio_path = "voiceover_temp.mp3"
-    tts.save(audio_path)
-    
-    audio_clip = mp.AudioFileClip(audio_path)
-    duration = audio_clip.duration
+# Interactive columns dynamic sizing
+col_inputs, col_preview = st.columns([left_col_ratio, right_col_ratio], gap="large")
 
-    # Step B: Render visual slide image
-    img_path = generate_topic_image(topic_text)
-
-    # Step C: Build video clip (MoviePy v2.0+ compatible API)
-    image_clip = mp.ImageClip(img_path).with_duration(duration)
-    video_clip = image_clip.with_audio(audio_clip)
-
-    output_video_path = "generated_topic_video.mp4"
-    video_clip.write_videofile(output_video_path, fps=24, codec="libx264")
-
-    # Clean up audio resource
-    audio_clip.close()
-    video_clip.close()
-    if os.path.exists(audio_path):
-        os.remove(audio_path)
-        
-    return output_video_path
-
-# -----------------------------------------------------------------------------
-# 5. APP HEADER & LAYOUT INITIALIZATION
-# -----------------------------------------------------------------------------
-st.markdown('<h1 class="main-title">🎬 YouTube Script Generator Pro</h1>', unsafe_allow_html=True)
-st.write("Generate high-retention video scripts customized by audience demographics, custom parameters, and AI visual assets.")
-
-# Apply user's custom slider widths to st.columns
-col_inputs, col_preview = st.columns([left_col_ratio, right_col_ratio], gap="medium")
-
-# Session state initialization
-if "script_html" not in st.session_state:
-    st.session_state.script_html = ""
+# Session state handling
 if "script_plain" not in st.session_state:
     st.session_state.script_plain = ""
 if "word_count" not in st.session_state:
     st.session_state.word_count = 0
-if "generated_image" not in st.session_state:
-    st.session_state.generated_image = None
-if "generated_video" not in st.session_state:
-    st.session_state.generated_video = None
+if "hook_text" not in st.session_state:
+    st.session_state.hook_text = ""
+if "intro_text" not in st.session_state:
+    st.session_state.intro_text = ""
+if "body_text" not in st.session_state:
+    st.session_state.body_text = ""
+if "outro_text" not in st.session_state:
+    st.session_state.outro_text = ""
 
 # -----------------------------------------------------------------------------
-# 6. INPUT FORM COLUMN
+# 5. INPUT FORM COLUMN
 # -----------------------------------------------------------------------------
 with col_inputs:
     st.markdown('<div class="styled-card">', unsafe_allow_html=True)
-    st.subheader("📌 Script Parameters")
+    st.markdown("### 📌 Script Builder Parameters")
     
-    topic = st.text_input("Video Topic / Title", placeholder="e.g. 10 AI Productivity Tools for 2026")
+    topic = st.text_input("🎥 Video Topic / Title", placeholder="e.g. 10 AI Productivity Tools to Automate Your Life")
     
     c1, c2 = st.columns(2)
     with c1:
         target_age = st.selectbox(
-            "Target Age",
+            "👥 Target Age Group",
             ["Teens (13-17)", "Young Adults (18-24)", "Adults (25-34)", "Middle-Aged (35-50)", "Seniors (50+)"],
             index=1
         )
     with c2:
         target_gender = st.selectbox(
-            "Target Gender",
-            ["All Audiences", "Male-leaning", "Female-leaning", "Inclusive / Non-Binary"]
+            "🎯 Audience Gender Focus",
+            ["All Audiences", "Male", "Female", "Inclusive / Non-Binary"]
         )
-    
-    custom_features = st.text_area(
-        "Custom Script Features & Instructions",
-        placeholder="e.g., Include comedic B-roll cues, add mid-video CTA at 2 mins, fast pacing...",
-        height=120
+        
+    pacing_tone = st.selectbox(
+        "⚡ Video Pacing & Style",
+        ["Fast & Dynamic (Tech/MrBeast style)", "Educational & In-depth (Documentary style)", "Storytelling & Conversational (Vlog style)", "Professional & Executive"]
     )
     
-    generate_btn = st.button("🚀 Generate Script", type="primary", use_container_width=True)
+    custom_features = st.text_area(
+        "📝 Custom Script Directives",
+        placeholder="e.g., Mention a sponsor at 2:00, include sound effect cues, use humor...",
+        height=130
+    )
+    
+    generate_btn = st.button("🚀 Generate High-Retention Script", type="primary", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 7. GENERATION LOGIC
+# 6. GENERATION LOGIC
 # -----------------------------------------------------------------------------
 if generate_btn:
     topic_val = topic if topic else "Untitled YouTube Video"
     custom_val = custom_features if custom_features else "Standard high-retention video style."
     
-    st.session_state.script_html = f"""
-    <h2>📹 Title: {html.escape(topic_val)}</h2>
-    <p><strong>🎯 Audience:</strong> {target_age} | {target_gender}</p>
-    <p><strong>⚡ Custom Rules:</strong> {html.escape(custom_val)}</p>
-    <hr>
+    st.session_state.hook_text = f"If you're still doing {topic_val} the old way, you are wasting hours every week! In this video, I'm revealing the step-by-step secret strategy."
+    st.session_state.intro_text = f"Welcome back to the channel! Tailored specifically for our {target_age} viewers, today we are breaking down everything you need to know about {topic_val}."
+    st.session_state.body_text = f"Rule #1: Focus on core fundamentals.\nRule #2: Avoid the critical mistakes that most {target_gender} creators make.\nRule #3: Apply this actionable pro-tip immediately."
+    st.session_state.outro_text = f"If this helped you out, drop a like and hit subscribe for more content on {topic_val}. See you in the next one!"
     
-    <h3>🔥 1. The Hook (0:00 - 0:15)</h3>
-    <p><strong>Visual Cue:</strong> Dynamic jump cuts, fast push-in camera zoom.</p>
-    <p><strong>Dialogue:</strong> "If you think {html.escape(topic_val)} is hard, you are doing it wrong. In this video, I'm revealing the exact step-by-step strategy!"</p>
-    
-    <h3>📍 2. Intro & Value Proposition (0:15 - 0:45)</h3>
-    <p><strong>Visual Cue:</strong> Title card overlay with key take-aways on screen.</p>
-    <p><strong>Dialogue:</strong> "Welcome back! Tailored specifically for our {target_age} audience, today we're uncovering secrets most creators skip."</p>
-    
-    <h3>💡 3. Core Content & Main Body (0:45 - 4:00)</h3>
-    <p><strong>Custom Applied Rule:</strong> <em>{html.escape(custom_val)}</em></p>
-    <ul>
-        <li><strong>Point 1:</strong> Foundational breakdown of {html.escape(topic_val)}.</li>
-        <li><strong>Point 2:</strong> Major mistakes to avoid for {target_gender} creators.</li>
-        <li><strong>Point 3:</strong> Actionable pro-tip you can implement today.</li>
-    </ul>
-    
-    <h3>📢 4. Call To Action & Outro (4:00 - End)</h3>
-    <p><strong>Visual Cue:</strong> End-screen cards pointing to recommended videos.</p>
-    <p><strong>Dialogue:</strong> "If you found this helpful, hit the Like button and subscribe for more content customized for you!"</p>
-    """.strip()
-
-    st.session_state.script_plain = f"""
-Title: {topic_val}
-Audience: {target_age} | {target_gender}
-Custom Instructions: {custom_val}
+    st.session_state.script_plain = f"""TITLE: {topic_val}
+AUDIENCE: {target_age} | {target_gender}
+PACING: {pacing_tone}
+DIRECTIVES: {custom_val}
 
 --- 1. THE HOOK (0:00 - 0:15) ---
-Visual: Dynamic jump cuts, camera zoom.
-Dialogue: "If you think {topic_val} is hard, you are doing it wrong. In this video, I'm revealing the exact step-by-step strategy!"
+Visual: Fast push-in zoom on creator, high energy sound effect.
+Dialogue: "{st.session_state.hook_text}"
 
 --- 2. INTRO & VALUE PROPOSITION (0:15 - 0:45) ---
-Visual: Title card overlay.
-Dialogue: "Welcome back! Tailored specifically for our {target_age} audience, today we're uncovering secrets most creators skip."
+Visual: Kinetic typography title card on screen.
+Dialogue: "{st.session_state.intro_text}"
 
 --- 3. CORE CONTENT (0:45 - 4:00) ---
-Custom Feature: {custom_val}
-- Point 1: Foundational breakdown of {topic_val}.
-- Point 2: Major mistakes to avoid for {target_gender} creators.
-- Point 3: Actionable pro-tip.
+Visual: Screen recording or B-roll overlays matching points.
+Directive Note: {custom_val}
+Dialogue / Points:
+{st.session_state.body_text}
 
---- 4. OUTRO & CTA ---
-Dialogue: "If you found this helpful, hit the Like button and subscribe for more!"
-    """.strip()
+--- 4. CALL TO ACTION & OUTRO (4:00 - End) ---
+Visual: Animated subscribe button overlay & End-screen video cards.
+Dialogue: "{st.session_state.outro_text}"
+""".strip()
 
     st.session_state.word_count = len(st.session_state.script_plain.split())
-    # Reset asset previews on new script generation
-    st.session_state.generated_image = None
-    st.session_state.generated_video = None
 
 # -----------------------------------------------------------------------------
-# 8. OUTPUT PREVIEW, ASSETS & EXPORT COLUMN
+# 7. OUTPUT PREVIEW & SCRIPT DASHBOARD
 # -----------------------------------------------------------------------------
 with col_preview:
-    st.markdown('<div class="styled-card">', unsafe_allow_html=True)
-    st.subheader("📑 Script Preview & Report")
-    
-    if st.session_state.script_html:
-        # Estimated reading time
+    if st.session_state.script_plain:
+        st.markdown('<div class="styled-card">', unsafe_allow_html=True)
+        st.markdown("### 📊 Script Analytics Dashboard")
+        
         est_minutes = round(st.session_state.word_count / 130, 1)
-        st.markdown(
-            f'<span class="metric-badge">⏱️ Est. Speech Time: ~{est_minutes} mins ({st.session_state.word_count} words)</span>', 
-            unsafe_allow_html=True
-        )
         
-        # HTML Script Display
-        st.markdown(st.session_state.script_html, unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="margin-bottom: 16px;">
+            <span class="metric-pill">⏱️ Est. Duration: ~{est_minutes} min</span>
+            <span class="metric-pill">📝 Word Count: {st.session_state.word_count}</span>
+            <span class="metric-pill">⚡ Target Pacing: 130 WPM</span>
+        </div>
+        """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
-        # --- NEW FEATURE: TOPIC VISUAL ASSET GENERATOR ---
-        st.markdown('<div class="styled-card">', unsafe_allow_html=True)
-        st.subheader("🎨 Generate Visual Media Asset")
-        st.write("Create a custom cover image or animated audio-video preview for your video topic.")
+        # Tabs for Studio Script View vs Teleprompter
+        tab_formatted, tab_teleprompter, tab_export = st.tabs(["🎬 Studio View", "📺 Teleprompter Mode", "📥 Export & Share"])
         
-        asset_col1, asset_col2 = st.columns(2)
-        
-        with asset_col1:
-            if st.button("🖼️ Generate Topic Image", use_container_width=True):
-                topic_str = topic if topic else "YouTube Topic"
-                st.session_state.generated_image = generate_topic_image(topic_str)
-                st.success("Topic Image Created!")
-                
-        with asset_col2:
-            if st.button("🎥 Render Topic MP4 Video", use_container_width=True):
-                with st.spinner("Synthesizing voiceover & rendering MP4..."):
-                    topic_str = topic if topic else "YouTube Topic"
-                    st.session_state.generated_video = generate_topic_video(topic_str, st.session_state.script_plain)
-                    st.success("MP4 Video Rendered!")
-        
-        # Display Generated Media Assets
-        if st.session_state.generated_image and os.path.exists(st.session_state.generated_image):
-            st.markdown("#### Generated Image Asset")
-            st.image(st.session_state.generated_image, use_container_width=True)
-            with open(st.session_state.generated_image, "rb") as file:
-                st.download_button("📥 Download Image (.png)", data=file, file_name="topic_thumbnail.png", mime="image/png")
+        with tab_formatted:
+            st.markdown('<div class="styled-card">', unsafe_allow_html=True)
+            st.markdown(f"<h2>📹 {html.escape(topic if topic else 'Untitled Video')}</h2>")
+            st.caption(f"Target: **{target_age}** | **{target_gender}** | Style: **{pacing_tone}**")
+            st.divider()
+            
+            # Hook Card
+            st.markdown("""
+            <div class="script-section">
+                <h4>🔥 1. The Hook (0:00 - 0:15)</h4>
+                <div class="visual-cue">🎥 VISUAL: Fast push-in camera zoom, sound effect burst</div>
+                <p><strong>Dialogue:</strong> "{hook}"</p>
+            </div>
+            """.format(hook=html.escape(st.session_state.hook_text)), unsafe_allow_html=True)
+            
+            # Intro Card
+            st.markdown("""
+            <div class="script-section">
+                <h4>📍 2. Intro & Value Proposition (0:15 - 0:45)</h4>
+                <div class="visual-cue">🎥 VISUAL: Kinetic text overlay on screen</div>
+                <p><strong>Dialogue:</strong> "{intro}"</p>
+            </div>
+            """.format(intro=html.escape(st.session_state.intro_text)), unsafe_allow_html=True)
+            
+            # Body Card
+            st.markdown("""
+            <div class="script-section">
+                <h4>💡 3. Core Content (0:45 - 4:00)</h4>
+                <div class="visual-cue">🎥 VISUAL: Relevant B-roll footage / Product demonstrations</div>
+                <p><strong>Content Outline:</strong></p>
+                <p style="white-space: pre-line;">{body}</p>
+            </div>
+            """.format(body=html.escape(st.session_state.body_text)), unsafe_allow_html=True)
+            
+            # Outro Card
+            st.markdown("""
+            <div class="script-section">
+                <h4>📢 4. Call to Action & Outro</h4>
+                <div class="visual-cue">🎥 VISUAL: End screen video recommendations card</div>
+                <p><strong>Dialogue:</strong> "{outro}"</p>
+            </div>
+            """.format(outro=html.escape(st.session_state.outro_text)), unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        if st.session_state.generated_video and os.path.exists(st.session_state.generated_video):
-            st.markdown("#### Generated Video Asset")
-            st.video(st.session_state.generated_video)
-            with open(st.session_state.generated_video, "rb") as file:
-                st.download_button("📥 Download Video (.mp4)", data=file, file_name="topic_preview.mp4", mime="video/mp4")
-                
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Download Section
-        st.markdown('<div class="styled-card">', unsafe_allow_html=True)
-        st.markdown("### 📥 Multi-Format Downloads")
-        d1, d2, d3, d4 = st.columns(4)
-        
-        # 1. Markdown
-        d1.download_button("📄 Markdown", data=st.session_state.script_plain.encode("utf-8"), file_name="script.md", mime="text/markdown", use_container_width=True)
-        
-        # 2. DOCX Word
-        doc_html = f"<html><body>{st.session_state.script_html}</body></html>".encode("utf-8")
-        d2.download_button("📝 DOCX", data=doc_html, file_name="script.doc", mime="application/msword", use_container_width=True)
-        
-        # 3. PPT Outline
-        ppt_txt = f"SLIDE 1: Title\n{topic}\n\nSLIDE 2: Hook\nAudience: {target_age}\n\nSLIDE 3: Key Points\n{custom_features}".encode("utf-8")
-        d3.download_button("📊 PPT", data=ppt_txt, file_name="ppt_outline.txt", mime="text/plain", use_container_width=True)
-        
-        # 4. HTML File
-        d4.download_button("🌐 HTML", data=st.session_state.script_html.encode("utf-8"), file_name="script.html", mime="text/html", use_container_width=True)
+        with tab_teleprompter:
+            st.markdown('<div class="styled-card">', unsafe_allow_html=True)
+            st.markdown("### 📺 High-Contrast Teleprompter Mode")
+            st.caption("Scroll down as you present directly to your camera lens.")
+            
+            teleprompter_content = f"""
+{st.session_state.hook_text.upper()}
 
-        # Direct Sharing Links
-        st.markdown("### ✉️ Direct Share Options")
-        s1, s2 = st.columns(2)
-        
-        wa_text = urllib.parse.quote(f"Check out my YouTube Script:\n\n{st.session_state.script_plain[:250]}...")
-        wa_url = f"https://api.whatsapp.com/send?text={wa_text}"
-        s1.markdown(f'<a href="{wa_url}" target="_blank"><button style="width:100%; background:#25D366; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">💬 Share via WhatsApp</button></a>', unsafe_allow_html=True)
-        
-        mail_sub = urllib.parse.quote(f"YouTube Script: {topic if topic else 'New Video'}")
-        mail_body = urllib.parse.quote(st.session_state.script_plain)
-        mail_url = f"mailto:?subject={mail_sub}&body={mail_body}"
-        s2.markdown(f'<a href="{mail_url}"><button style="width:100%; background:#2563EB; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">✉️ Send via Email</button></a>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+[ PAUSE - INTRO TITLE CARD ]
+
+{st.session_state.intro_text}
+
+[ CORE POINTS ]
+
+{st.session_state.body_text}
+
+[ OUTRO & CTA ]
+
+{st.session_state.outro_text}
+            """
+            st.markdown(f'<div class="teleprompter-box">{html.escape(teleprompter_content).replace(chr(10), "<br>")}</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with tab_export:
+            st.markdown('<div class="styled-card">', unsafe_allow_html=True)
+            st.markdown("### 📥 Download Script Formats")
+            d1, d2, d3 = st.columns(3)
+            
+            # 1. Markdown
+            d1.download_button("📄 Download .MD", data=st.session_state.script_plain.encode("utf-8"), file_name="script.md", mime="text/markdown", use_container_width=True)
+            
+            # 2. Text File
+            d2.download_button("📝 Download .TXT", data=st.session_state.script_plain.encode("utf-8"), file_name="script.txt", mime="text/plain", use_container_width=True)
+            
+            # 3. Teleprompter Text
+            d3.download_button("📺 Teleprompter Script", data=teleprompter_content.encode("utf-8"), file_name="teleprompter.txt", mime="text/plain", use_container_width=True)
+
+            st.divider()
+            st.markdown("### ✉️ Quick Share Links")
+            s1, s2 = st.columns(2)
+            
+            wa_text = urllib.parse.quote(f"Check out my new YouTube Script:\n\n{st.session_state.script_plain[:250]}...")
+            wa_url = f"https://api.whatsapp.com/send?text={wa_text}"
+            s1.markdown(f'<a href="{wa_url}" target="_blank"><button style="width:100%; background:#25D366; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">💬 Share via WhatsApp</button></a>', unsafe_allow_html=True)
+            
+            mail_sub = urllib.parse.quote(f"YouTube Script: {topic if topic else 'New Video'}")
+            mail_body = urllib.parse.quote(st.session_state.script_plain)
+            mail_url = f"mailto:?subject={mail_sub}&body={mail_body}"
+            s2.markdown(f'<a href="{mail_url}"><button style="width:100%; background:#2563EB; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">✉️ Send via Email</button></a>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
     else:
-        st.info("Adjust the parameters on the left and click **Generate Script** to create your script preview and enable asset generation.")
+        st.markdown('<div class="styled-card">', unsafe_allow_html=True)
+        st.info("👈 Enter your video details on the left and click **Generate High-Retention Script** to open your script dashboard.")
         st.markdown('</div>', unsafe_allow_html=True)
