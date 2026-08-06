@@ -198,3 +198,11 @@ with col_preview:
     else:
         st.info("Generate a script first in Step 1 to unlock Video Generation & YouTube Uploading.")
     st.markdown('</div>', unsafe_allow_html=True)
+
+AttributeError: This app has encountered an error. The original error message is redacted to prevent data leaks. Full error details have been recorded in the logs (if you're on Streamlit Cloud, click on 'Manage app' in the lower right of your app).
+Traceback:
+File "/mount/src/youtube-content-script/app.py", line 172, in <module>
+    video_file = create_video_from_script(st.session_state.script_text)
+File "/mount/src/youtube-content-script/app.py", line 108, in create_video_from_script
+    image_clip = mp.ImageClip(image_path).set_duration(duration)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
