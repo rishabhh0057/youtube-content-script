@@ -309,7 +309,7 @@ with col_preview:
         # Display Generated Media Assets
         if st.session_state.generated_image and os.path.exists(st.session_state.generated_image):
             st.markdown("#### Generated Image Asset")
-            st.image(st.session_state.generated_image, use_column_width=True)
+            st.image(st.session_state.generated_image, use_container_width=True)
             with open(st.session_state.generated_image, "rb") as file:
                 st.download_button("📥 Download Image (.png)", data=file, file_name="topic_thumbnail.png", mime="image/png")
 
