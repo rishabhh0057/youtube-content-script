@@ -4,7 +4,8 @@ import os
 import urllib.parse
 from gtts import gTTS
 from PIL import Image, ImageDraw, ImageFont
-import moviepy.editor as mp
+# ✅ NEW (Compatible with MoviePy 2.0+)
+import moviepy as mp
 
 # Google API Imports for YouTube Upload
 from googleapiclient.discovery import build
